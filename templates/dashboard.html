@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-wrapper">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">📊 Dashboard</h2>
+    <small class="muted">Overview of store metrics</small>
+</div>
+
+<div class="row gy-3">
+    <div class="col-sm-6 col-md-3">
+        <div class="card p-3 card-stats shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 muted">Products</h6>
+                    <h3 class="mb-0 stat-number">{{ data[0] }}</h3>
+                </div>
+                <i class="fa-solid fa-boxes-stacked fa-2x" style="color: var(--accent);"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+        <div class="card p-3 card-stats shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 muted">Customers</h6>
+                    <h3 class="mb-0 stat-number">{{ data[1] }}</h3>
+                </div>
+                <i class="fa-solid fa-users fa-2x" style="color: var(--accent);"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+        <div class="card p-3 card-stats shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 muted">Sales</h6>
+                    <h3 class="mb-0 stat-number">{{ data[2] }}</h3>
+                </div>
+                <i class="fa-solid fa-sack-dollar fa-2x" style="color: var(--accent);"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+        <div class="card p-3 card-stats shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 muted">Total Revenue</h6>
+                    <h3 class="mb-0 stat-number">₹ {{ "%.2f"|format(data[3]) }}</h3>
+                </div>
+                <i class="fa-solid fa-coins fa-2x" style="color: var(--accent);"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}

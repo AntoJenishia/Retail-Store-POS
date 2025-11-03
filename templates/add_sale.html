@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">➕ Add Sale</h2>
+
+<form method="POST" class="p-4 card" id="addSaleForm">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Customer</label>
+            <div class="d-flex gap-2">
+              <select class="form-select" name="customer_id" id="customerSelect" required>
+                  <option value="">Select Customer</option>
+                  {% for c in customers %}
+                      <option value="{{ c[0] }}">{{ c[1] }}</option>
+                  {% endfor %}
+              </select>
+              <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#addCustomerModal"><i class="fa-solid fa-user-plus"></i></button>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Product</label>
+            <select class="form-select" name="product_id" id="productSelect" required>
+                <option value="" data-price="0">Select Product</option>
+                {% for p in products %}
+                    <option value="{{ p[0] }}" data-price="{{ p[3] }}">{{ p[1] }} — ₹{{ "%.2f"|format(p[3]) }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Quantity</label>
+            <input type="number" name="quantity" id="qtyInput" class="form-control" required min="1" value="1">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Unit Price (₹)</label>
+            <input type="text" id="unitPrice" class="form-control" readonly>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Subtotal (₹)</label>
+            <input type="text" id="subtotal" class="form-control fw-bold" readonly>
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i> Add Sale</button>
+            <button type="reset" class="btn btn-outline-secondary ms-2">Reset</button>
+        </div>
+    </div>
+</form>
+
+{% block scripts %}
+<script>
+    (function(){
+        const productSelect = document.getElementById('productSelect');
+        const qty = document.getElementById('qtyInput');
+        const unit = document.getElementById('unitPrice');
+        const subtotal = document.getElementById('subtotal');
+
+        function recompute(){
+            const opt = productSelect.selectedOptions[0];
+            const price = opt ? parseFloat(opt.dataset.price || 0) : 0;
+            const q = Math.max(1, parseInt(qty.value||1));
+            unit.value = price ? price.toFixed(2) : '';
+            subtotal.value = price ? (price * q).toFixed(2) : '';
+        }
+
+        productSelect?.addEventListener('change', recompute);
+        qty?.addEventListener('input', recompute);
+        // initialize
+        recompute();
+    })();
+</script>
+<!-- Add Customer Modal + AJAX -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Customer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+                    <div class="modal-body">
+                        <form id="addCustomerForm">
+                            <div class="mb-2">
+                                <label class="form-label small">Customer Name</label>
+                                <input name="name" class="form-control form-control-sm" required />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Phone</label>
+                                <input name="phone" class="form-control form-control-sm" placeholder="e.g. 9876543210" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Email</label>
+                                <input name="email" type="email" class="form-control form-control-sm" placeholder="name@example.com" />
+                            </div>
+                        </form>
+                    </div>
+            <div class="modal-footer">
+                <button id="addCustomerSubmit" type="button" class="btn btn-primary btn-sm">Create</button>
+                <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+            const form = document.getElementById('addCustomerForm');
+            const submit = document.getElementById('addCustomerSubmit');
+            const select = document.getElementById('customerSelect');
+            submit?.addEventListener('click', async function(e){
+                e.preventDefault();
+                const fd = new FormData(form);
+                const payload = { name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email') };
+            submit.disabled = true;
+            try{
+                const res = await fetch('/add_customer', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+                const data = await res.json();
+                if(res.ok && data.success){
+                        const c = data.customer;
+                        // If server indicated existing customer, notify user but still select it
+                        if(data.customer && data.customer.id){
+                            const opt = document.createElement('option');
+                            opt.value = c.id;
+                            opt.textContent = c.name + (c.phone ? ' — ' + c.phone : '');
+                            // avoid adding duplicate option if it already exists by value
+                            if(!select.querySelector(`option[value="${c.id}"]`)) select.appendChild(opt);
+                            select.value = c.id; // select the customer (new or existing)
+                            form.reset();
+                            const modalEl = document.getElementById('addCustomerModal');
+                            const bsModal = bootstrap.Modal.getInstance(modalEl);
+                            bsModal.hide();
+                            if(data.customer.existing){
+                                // brief notice
+                                alert('Customer already exists and was selected.');
+                            }
+                        }
+                } else {
+                    alert(data.error || 'Failed to add customer');
+                }
+            } catch(err){
+                console.error(err);
+                alert('Network error');
+            } finally{ submit.disabled = false; }
+        });
+    })();
+</script>
+{% endblock %}
+
+{% endblock %}

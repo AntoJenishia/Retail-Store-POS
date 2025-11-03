@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">🛒 Products</h2>
+    <div class="d-flex gap-2 align-items-center">
+        <input id="productSearch" class="form-control form-control-sm" placeholder="Search products..." />
+        <button id="openAddProduct" class="btn btn-sm btn-outline-light ms-2" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fa-solid fa-plus me-1"></i> Add Product</button>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table id="productsTable" class="table table-borderless table-striped align-middle">
+            <thead class="muted small">
+                    <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th class="text-end">Price (₹)</th>
+                            <th class="text-end">Stock</th>
+                    </tr>
+            </thead>
+            <tbody>
+                    {% for p in products %}
+                    <tr>
+                            <td>{{ p[0] }}</td>
+                            <td>{{ p[1] }}</td>
+                            <td class="muted">{{ p[2] }}</td>
+                            <td class="text-end">{{ "%.2f"|format(p[3]) }}</td>
+                            <td class="text-end">{{ p[4] }}</td>
+                    </tr>
+                    {% endfor %}
+            </tbody>
+    </table>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Product</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="mb-2">
+                        <label class="form-label small">Name</label>
+                        <input name="name" class="form-control form-control-sm" required />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Category</label>
+                        <input name="category" class="form-control form-control-sm" />
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small">Price</label>
+                            <input name="price" type="number" step="0.01" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Stock</label>
+                            <input name="stock" type="number" class="form-control form-control-sm" value="0" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="addProductSubmit" class="btn btn-primary btn-sm">Create</button>
+                <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // simple client-side filter for products table
+    (function(){
+        const input = document.getElementById('productSearch');
+        const table = document.getElementById('productsTable');
+        if(input && table){
+            input.addEventListener('input', function(){
+                const q = this.value.trim().toLowerCase();
+                for(const row of table.tBodies[0].rows){
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = q === '' || text.indexOf(q) !== -1 ? '' : 'none';
+                }
+            });
+        }
+
+        // Add product via AJAX and append to table
+        const form = document.getElementById('addProductForm');
+        const submit = document.getElementById('addProductSubmit');
+        submit?.addEventListener('click', async function(e){
+            e.preventDefault();
+            const fd = new FormData(form);
+            const payload = {
+                name: fd.get('name'),
+                category: fd.get('category'),
+                price: fd.get('price'),
+                stock: fd.get('stock')
+            };
+            submit.disabled = true;
+            try{
+                const res = await fetch('/add_product', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+                const data = await res.json();
+                if(res.ok && data.success){
+                    const p = data.product;
+                    const tbody = table.tBodies[0];
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${p.id}</td><td>${p.name}</td><td class="muted">${p.category}</td><td class="text-end">${p.price.toFixed(2)}</td><td class="text-end">${p.stock}</td>`;
+                    tbody.prepend(tr);
+                    // reset form and hide modal
+                    form.reset();
+                    const modalEl = document.getElementById('addProductModal');
+                    const bsModal = bootstrap.Modal.getInstance(modalEl);
+                    bsModal.hide();
+                } else {
+                    alert(data.error || 'Failed to add product');
+                }
+            } catch(err){
+                console.error(err);
+                alert('Network error');
+            } finally{ submit.disabled = false; }
+        });
+    })();
+</script>
+
+{% endblock %}

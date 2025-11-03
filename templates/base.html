@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Retail Store POS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg: #0A1A2F; /* comfortable navy blue */
+            --card: #152A44;
+            --muted: #94A3B8;
+            --accent: #06B6D4; /* bright cyan */
+            --accent-glow: #22D3EE;
+            --text: #E2E8F0;
+        }
+        html,body{height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+        body { 
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.05) 0%, transparent 25%);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Smooth page transitions */
+        .content-wrapper {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .navbar { 
+            background-color: rgba(21,42,68,0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .card { 
+            background-color: var(--card);
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        a { color: var(--accent); text-decoration: none; transition: color 0.15s ease-in-out; }
+        a:hover { color: var(--accent-glow); }
+        .muted { color: var(--muted); }
+        /* Make form labels and small helper text clearly visible on the dark navy background */
+        .form-label,
+        label,
+        .form-text,
+        .form-label.small {
+            color: rgba(226,232,240,0.88); /* slightly translucent off-white for readability */
+            font-weight: 600;
+        }
+        footer { color: var(--muted); padding: 1rem 0; }
+        .brand-mark { 
+            font-weight: 700; 
+            color: var(--accent);
+            background: linear-gradient(120deg, var(--accent), var(--accent-glow));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Glowing animation for numbers */
+        @keyframes pulseGlow {
+            0% { text-shadow: 0 0 10px rgba(6, 182, 212, 0.3); }
+            50% { text-shadow: 0 0 20px rgba(6, 182, 212, 0.5); }
+            100% { text-shadow: 0 0 10px rgba(6, 182, 212, 0.3); }
+        }
+        /* Smooth navigation transitions */
+        .navbar a {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .navbar a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+        .navbar a:hover::after {
+            width: 100%;
+        }
+        .card-stats { 
+            min-height: 110px;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(6, 182, 212, 0.1),
+                transparent
+            );
+            transition: 0.5s;
+        }
+        .card-stats:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .card-stats:hover::before {
+            left: 100%;
+        }
+        .stat-number {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+            animation: pulseGlow 2s infinite;
+            text-shadow: 0 0 10px rgba(6,182,212,0.2);
+        }
+        @media (max-width:575px){ .navbar-brand { font-size:1rem } }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+            <i class="fa-solid fa-store me-2 brand-mark"></i>
+            <span>Retail POS</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}"><i class="fa-solid fa-gauge-high me-1"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('products') }}"><i class="fa-solid fa-boxes-stacked me-1"></i> Products</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('add_sale') }}"><i class="fa-solid fa-cash-register me-1"></i> Add Sale</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    {# Flash messages area #}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="mt-2">
+          {% for msg in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="fa-solid fa-circle-check me-2"></i>{{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <footer class="mt-5 text-center">
+        <small>© {{ now().year if now is defined else "2025" }} Retail POS — Built for a DBMS mini project</small>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // small helper to show/hide elements
+  function qs(sel, el=document){ return el.querySelector(sel); }
+  document.addEventListener('click', function(e){ if(e.target.matches('[data-toggle]')){ e.preventDefault(); }});
+
+  // expose block for page scripts
+  window.app = { /* placeholder for page scripts */ };
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>
